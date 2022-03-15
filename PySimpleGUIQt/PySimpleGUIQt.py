@@ -1,14 +1,18 @@
 #!/usr/bin/python3
-version = __version__ = "0.35.0.12 Unreleased\nMassive update of docstrings (thanks nngogol), default for slider tick interval set automatically now, margins added to Window but not yet hooked up, VSeparator added (spelling error), added Radio.reset_group and removed clearing all when one of them is cleared (recent change), added default key for one_line_progress_meter, auto-add keys to tables & trees, InputText element gets new disabled-readonly foreground and background color settings and also a readonly parameter, InputText gets border_width parameter, fixed up some docstrings, popup gets new image and any_key_closes parms, input type popups also get image parameter, error checks for trying to manipulate a window prior to finalize, added a dummy Element.expand method, added theme_add_new, added Window.set_title"
+version = __version__ = "0.35.0.18.1 Unreleased\nMassive update of docstrings (thanks nngogol), default for slider tick interval set automatically now, margins added to Window but not yet hooked up, VSeparator added (spelling error), added Radio.reset_group and removed clearing all when one of them is cleared (recent change), added default key for one_line_progress_meter, auto-add keys to tables & trees, InputText element gets new disabled-readonly foreground and background color settings and also a readonly parameter, InputText gets border_width parameter, fixed up some docstrings, popup gets new image and any_key_closes parms, input type popups also get image parameter, error checks for trying to manipulate a window prior to finalize, added a dummy Element.expand method, added theme_add_new, added Window.set_title, updated to the latest themes from tktiner port, big styles update (thanks nngogol!), more Styles work, changed popup text layout to match tkinter port, fixed vertical alignment in row, added margin to some elements, renamed styles related variables, window margin support but be careful. Added back the truncated portion"
+
+__version__ = version.split()[0]    # For PEP 396 and PEP 345
+
+# The shortened version of version
+try:
+    ver = version.split(' ')[0]
+except:
+    ver = ''
+
 
 port = 'PySimpleGUIQt'
 
-import sys
-import datetime
-import textwrap
-import pickle
-import random
-import warnings
+import sys, datetime, textwrap, pickle, random, warnings, time
 try:        # Because Raspberry Pi is still on 3.4....it's not critical if this module isn't imported on the Pi
     from typing import List, Any, Union, Tuple, Dict    # because this code has to run on 2.7 can't use real type hints.  Must do typing only in comments
 except:
@@ -21,13 +25,16 @@ except:
 #          #          #  #  #    #  #####   #       #       #     #  #     #   #   #   # #    #
 #          #    #     #  #  #    #  #       #       #       #     #  #     #   #   #    #     #
 #          #     #####   #  #    #  #       ######  ######   #####    #####   ###   #### #    #
+#
+# Copyright 2020 PySimpleGUI.org
+
 
 from PySide2.QtWidgets import QApplication, QLabel, QWidget, QLineEdit, QComboBox, QFormLayout, QVBoxLayout, QHBoxLayout, QListWidget, QDial, QTableWidget
 from PySide2.QtWidgets import QSlider, QCheckBox, QRadioButton, QSpinBox, QPushButton, QTextEdit, QMainWindow, QDialog, QAbstractItemView
 from PySide2.QtWidgets import QSpacerItem, QFrame, QGroupBox, QTextBrowser, QPlainTextEdit, QButtonGroup, QFileDialog, QTableWidget, QTabWidget, QTabBar, QTreeWidget, QTreeWidgetItem, QLayout, QTreeWidgetItemIterator, QProgressBar
 from PySide2.QtWidgets import QTableWidgetItem, QGraphicsView, QGraphicsScene, QGraphicsItemGroup, QMenu, QMenuBar, QAction, QSystemTrayIcon, QColorDialog
 from PySide2.QtGui import QPainter, QPixmap, QPen, QColor, QBrush, QPainterPath, QFont, QImage, QIcon
-from PySide2.QtCore import Qt,QProcess, QEvent, QSize
+from PySide2.QtCore import Qt, QEvent, QSize
 import PySide2.QtGui as QtGui
 import PySide2.QtCore as QtCore
 import PySide2.QtWidgets as QtWidgets
@@ -35,13 +42,6 @@ import PySide2.QtWidgets as QtWidgets
 using_pyqt5 = False
 
 
-
-"""
-    The QT version if PySimpleGUI.
-    Still being developed.  Very limited features.  Been in development for less than 2 days so don't expect much!!
-    
-    So far can interact with the basic Widgets and get button clicks back.  Can't yet read which button caused the event.
-"""
 
 DEFAULT_BASE64_ICON = b'R0lGODlhIQAgAPcAAAAAADBpmDBqmTFqmjJrmzJsnDNtnTRrmTZtmzZumzRtnTdunDRunTRunjVvnzdwnzhwnjlxnzVwoDZxoTdyojhzozl0ozh0pDp1pjp2pjp2pzx0oj12pD52pTt3qD54pjt4qDx4qDx5qTx5qj16qj57qz57rD58rT98rkB4pkJ7q0J9rEB9rkF+rkB+r0d9qkZ/rEl7o0h8p0x9pk5/p0l+qUB+sEyBrE2Crk2Er0KAsUKAskSCtEeEtUWEtkaGuEiHuEiHukiIu0qKu0mJvEmKvEqLvk2Nv1GErVGFr1SFrVGHslaHsFCItFSIs1COvlaPvFiJsVyRuWCNsWSPsWeQs2SQtGaRtW+Wt2qVuGmZv3GYuHSdv3ievXyfvV2XxGWZwmScx2mfyXafwHikyP7TPP/UO//UPP/UPf/UPv7UP//VQP/WQP/WQf/WQv/XQ//WRP7XSf/XSv/YRf/YRv/YR//YSP/YSf/YSv/ZS//aSv/aS/7YTv/aTP/aTf/bTv/bT//cT/7aUf/cUP/cUf/cUv/cU//dVP/dVf7dVv/eVv/eV//eWP/eWf/fWv/fW/7cX/7cYf7cZP7eZf7dav7eb//gW//gXP/gXf/gXv/gX//gYP/hYf/hYv/iYf/iYv7iZP7iZf/iZv/kZv7iaP/kaP/ka//ma//lbP/lbv/mbP/mbv7hdP7lcP/ncP/nc//ndv7gef7gev7iff7ke/7kfv7lf//ocf/ocv/odP/odv/peP/pe//ofIClw4Ory4GszoSszIqqxI+vyoSv0JGvx5OxyZSxyZSzzJi0y5m2zpC10pi715++16C6z6a/05/A2qHC3aXB2K3I3bLH2brP4P7jgv7jh/7mgf7lhP7mhf7liv/qgP7qh/7qiP7rjf7sjP7nkv7nlv7nmP7pkP7qkP7rkv7rlv7slP7sl/7qmv7rnv7snv7sn/7un/7sqv7vq/7vrf7wpv7wqf7wrv7wsv7wtv7ytv7zvP7zv8LU48LV5c3a5f70wP7z0AAAACH5BAEAAP8ALAAAAAAhACAAAAj/AP8JHEiwoMGDCA1uoYIF4bhK1vwlPOjlQICLApwVpFTGzBk1siYSrCLgoskFyQZKMsOypRyR/GKYnBkgQbF/s8603KnmWkIaNIMaw6lzZ8tYB2cIWMo0KIJj/7YV9XgGDRo14gpOIUBggNevXpkKGCDsXySradSoZcMmDsFnDxpEKEC3bl2uXCFQ+7emjV83bt7AgTNroJINAq0wWBxBgYHHdgt0+cdnMJw5c+jQqYNnoARkAx04kPEvS4PTqBswuPIPUp06duzcuYMHT55wAjkwEahsQgqBNSQIHy582D9BePTs2dOnjx8/f1gJ9GXhRpTqApFQoDChu3cOAps///9D/g+gQvYGjrlw4cU/fUnYX6hAn34HgZMABQo0iJB/Qoe8UxAXOQiEg3wIXvCBQLUU4mAhh0R4SCLqJOSEBhhqkAEGHIYgUDaGICIiIoossogj6yBUTQ4htNgiCCB4oIJAtJTIyI2MOOLIIxMtQQIJIwQZpAgwCKRNI43o6Igll1ySSTsI7dOECSaUYOWVKwhkiyVMYuJlJpp0IpA6oJRTkBQopHnCmmu2IBA2mmQi5yZ0fgJKPP+0IwoooZwzkDQ2uCCoCywUyoIW/5DDyaKefOLoJ6LU8w87pJgDTzqmDNSMDpzqYMOnn/7yTyiglBqKKKOMUopA7JgCy0DdeMEjUDM71GqrrcH8QwqqqpbiayqToqJKLwN5g45A0/TAw7LL2krGP634aoopp5yiiiqrZLuKK+jg444uBIHhw7g+MMsDFP/k4wq22rririu4xItLLriAUxAQ5ObrwzL/0PPKu7fIK3C8uxz0w8EIIwzMP/cM7HC88hxEzBBCBGGxxT8AwQzDujws7zcJQVMEEUKUbPITAt1D78OSivSFEUXEXATKA+HTscC80CPSQNGEccQRYhjUDzfxcjPPzkgnLVBAADs='
 
@@ -53,7 +53,6 @@ g_time_start = 0
 g_time_end = 0
 g_time_delta = 0
 
-import time
 
 
 def TimerStart():
@@ -91,7 +90,7 @@ def TimerStop():
 DEFAULT_WINDOW_ICON = DEFAULT_BASE64_ICON
 DEFAULT_ELEMENT_SIZE = (250, 22)  # In PIXELS
 DEFAULT_BUTTON_ELEMENT_SIZE = (80, 25 )  # In PIXELS
-DEFAULT_MARGINS = (10, 5)  # Margins for each LEFT/RIGHT margin is first term
+DEFAULT_MARGINS = (0,0)   # For Qt, use a Column element with padding to get same effect as tkinter port
 DEFAULT_ELEMENT_PADDING = (4, 2)  # Padding between elements (row, col) in pixels
 # DEFAULT_ELEMENT_PADDING = (0, 0)  # Padding between elements (row, col) in pixels
 DEFAULT_PIXELS_TO_CHARS_SCALING = (10,35)      # 1 character represents x by y pixels
@@ -129,6 +128,7 @@ OFFICIAL_PYSIMPLEGUI_BUTTON_COLOR = ('white', BLUES[0])  # Colors should never b
 
 
 CURRENT_LOOK_AND_FEEL = 'DarkBlue3'
+# CURRENT_LOOK_AND_FEEL = 'Dark Red'
 
 DEFAULT_ERROR_BUTTON_COLOR = ("#FFFFFF", "#FF0000")
 DEFAULT_BACKGROUND_COLOR = None
@@ -306,6 +306,8 @@ POPUP_BUTTONS_OK_CANCEL = 4
 POPUP_BUTTONS_OK = 0
 POPUP_BUTTONS_NO_BUTTONS = 5
 
+# def apply_new_font(css_dict, font_string):
+#     return css_dict.update({k.strip().replace('_', '-') : v.strip() for k,v in font_string.replace('\n', '').split(';')})
 
 # ---------------------------------------------------------------------- #
 # Cascading structure.... Objects get larger                             #
@@ -383,6 +385,9 @@ class Element():
         self.Visible = visible
         self.metadata = metadata                # type: Any
         self.row_frame = None                   # type: QHBoxLayout
+        self.qt_styles = []                     # type: List[QtStyle]
+        self.Widget = None                      # type: QWidget
+
 
 
     def _FindReturnKeyBoundButton(self, form):
@@ -437,23 +442,49 @@ class Element():
     def Update(self, widget, background_color=None, text_color=None, font=None, visible=None):
         if not self._widget_was_created():
             return
-        style = str(widget.styleSheet())
-        add_brace = False
-        if len(style) != 0 and style[-1] == '}':
-            style = style[:-1]
-            add_brace = True
-        if font is not None:
-            style += create_style_from_font(font)
+
+        a_style = self.qt_styles[0]
+        # print(f'a_style = {a_style}')
+        if font is not None:  #= apply_new_font(css_props_dict, create_style_from_font(font))
+            a_style['font'] = create_style_from_font(font)
         if text_color is not None:
-            style += ' color: %s;' % text_color
+            a_style['color'] = text_color
             self.TextColor = text_color
         if background_color is not None:
-            style += 'background-color: %s;' % background_color
-        if add_brace:
-            style += '}'
-        widget.setStyleSheet(style)
+            a_style['background-color'] = background_color
+            self.BackgroundColor = background_color
+
+        # print(f'a_style = {a_style}')
+        widget.setStyleSheet(a_style.build_css_string())
         set_widget_visiblity(widget, visible)
 
+
+    def set_stylesheet(self, stylesheet):
+        """
+        Sets the stylesheet for a Qt Widget
+        :param stylesheet: Stylesheet (string) to set stylesheet to
+        :type stylesheet: (str)
+        """
+        try:
+            self.Widget.setStyleSheet(stylesheet)
+        except Exception as e:
+            print('** Error Setting Stylesheet **', e)
+
+    def get_stylesheet(self):
+        """
+        Returns the stylesheet for element's associated Qt Widget
+        :return: stylesheet
+        :rtype: (str)
+        """
+        stylesheet = ''
+        try:
+            stylesheet = self.Widget.styleSheet()
+        except Exception as e:
+            print('** Error Setting Stylesheet **', e)
+
+        return stylesheet
+
+    update = Update
 
     # ---------------------------------- DUMMY METHODS - They don't do anything! ----------------------------------
 
@@ -941,6 +972,9 @@ class Listbox(Element):
     update = Update
 
 
+LBox = Listbox
+LB = Listbox
+
 # ---------------------------------------------------------------------- #
 #                           Radio                                        #
 # ---------------------------------------------------------------------- #
@@ -1030,6 +1064,9 @@ class Radio(Element):
         _element_callback_quit_mainloop(self)
 
     update = Update
+
+R = Radio
+Rad = Radio
 
 # ---------------------------------------------------------------------- #
 #                           Checkbox                                     #
@@ -2355,8 +2392,8 @@ class Graph(Element):
         pen = QPen(qcolor)
         qcolor = QColor(fill_color)
         brush = QBrush(qcolor)
-        circle_id = self.QT_QGraphicsScene.addEllipse(self.x+converted_point[0], self.y+converted_point[1],
-                                           radius, radius, pen=pen, brush=brush)
+        circle_id = self.QT_QGraphicsScene.addEllipse(self.x + converted_point[0] - radius, self.y + converted_point[1] - radius,
+                                                      radius * 2, radius * 2, pen=pen, brush=brush)
         return circle_id            # type: QGraphicsEllipseItem
 
     def RelocateFigure(self, id, x, y):
@@ -2511,7 +2548,7 @@ class Graph(Element):
 #                           Frame                                        #
 # ---------------------------------------------------------------------- #
 class Frame(Element):
-    def __init__(self, title, layout, title_color=None, background_color=None, title_location=None,
+    def __init__(self, title, layout, title_color=None, background_color=None, title_location=None, frame_color=None,
                  relief=DEFAULT_FRAME_RELIEF, element_justification='float', size=(None, None), font=None, pad=None, border_width=None, key=None, k=None,
                  tooltip=None, visible=True, size_px=(None,None), metadata=None):
         """
@@ -2525,6 +2562,8 @@ class Frame(Element):
         :type background_color: (str)
         :param title_location: location to place the text title.  Choices include: TITLE_LOCATION_TOP TITLE_LOCATION_BOTTOM TITLE_LOCATION_LEFT TITLE_LOCATION_RIGHT TITLE_LOCATION_TOP_LEFT TITLE_LOCATION_TOP_RIGHT TITLE_LOCATION_BOTTOM_LEFT TITLE_LOCATION_BOTTOM_RIGHT
         :type title_location: (enum)
+        :param frame_color: color of the frame lines
+        :type frame_color: (str)
         :param relief: relief style. Values are same as other elements with reliefs. Choices include RELIEF_RAISED RELIEF_SUNKEN RELIEF_FLAT RELIEF_RIDGE RELIEF_GROOVE RELIEF_SOLID
         :type relief: (enum)
         :param element_justification: All elements inside the Frame will have this justification 'left', 'right', 'center' are valid values
@@ -2566,6 +2605,7 @@ class Frame(Element):
         self.BorderWidth = border_width
         self.BackgroundColor = background_color if background_color is not None else DEFAULT_BACKGROUND_COLOR
         self.ElementJustification = element_justification
+        self.FrameColor = frame_color
         self.Widget = self.QT_QGroupBox = None              # type: QGroupBox
         self.Layout(layout)
 
@@ -3225,6 +3265,8 @@ class Menu(Element):
         """
         key = key if key is not None else k
         self.BackgroundColor = background_color if background_color is not None else DEFAULT_BACKGROUND_COLOR
+        self.MenuItemTextColor = theme_text_color()
+        self.MenuItemBackgroundColor = theme_background_color()
         self.MenuDefinition = menu_definition
         self.TKMenu = None
         self.Tearoff = tearoff
@@ -3344,8 +3386,8 @@ class Table(Element):
         self.AutoSizeColumns = auto_size_columns
         self.BackgroundColor = background_color if background_color is not None else DEFAULT_BACKGROUND_COLOR
         self.TextColor = text_color
-        self.HeaderTextColor = header_text_color if header_text_color is not None else LOOK_AND_FEEL_TABLE[CURRENT_LOOK_AND_FEEL]['TEXT_INPUT']
-        self.HeaderBackgroundColor = header_background_color if header_background_color is not None else LOOK_AND_FEEL_TABLE[CURRENT_LOOK_AND_FEEL]['INPUT']
+        self.HeaderTextColor = header_text_color if header_text_color is not None else theme_input_text_color()
+        self.HeaderBackgroundColor = header_background_color if header_background_color is not None else theme_input_background_color()
         self.HeaderFont = header_font
         self.Justification = justification
         self.InitialState = None
@@ -3471,7 +3513,7 @@ class Tree(Element):
     def __init__(self, data=None, headings=None, visible_column_map=None, col_widths=None, col0_width=10,
                  def_col_width=10, auto_size_columns=True, max_col_width=20, select_mode=None, show_expanded=False,
                  change_submits=False, enable_events=False, font=None, size=(200,600),
-                 justification='right', text_color=None, background_color=None, num_rows=None, pad=None, key=None, k=None,
+                 justification='right', header_text_color=None, header_background_color=None, header_font=None,  text_color=None, background_color=None, num_rows=None, pad=None, key=None, k=None,
                  tooltip=None, visible=True, size_px=(None,None), metadata=None):
         """
         :param data: The data represented using a PySimpleGUI provided TreeData class
@@ -3504,6 +3546,12 @@ class Tree(Element):
         :type size: ???
         :param justification: 'left', 'right', 'center' are valid choices
         :type justification: (str)
+        :param header_text_color: sets the text color for the header
+        :type header_text_color: (str)
+        :param header_background_color: sets the background color for the header
+        :type header_background_color: (str)
+        :param header_font: specifies the font family, size, etc
+        :type header_font: Union[str, Tuple[str, int]]
         :param text_color: color of the text
         :type text_color: (str)
         :param background_color: color of background
@@ -3535,6 +3583,9 @@ class Tree(Element):
         self.AutoSizeColumns = auto_size_columns
         self.BackgroundColor = background_color if background_color is not None else DEFAULT_BACKGROUND_COLOR
         self.TextColor = text_color
+        self.HeaderTextColor = header_text_color if header_text_color is not None else theme_input_text_color()
+        self.HeaderBackgroundColor = header_background_color if header_background_color is not None else theme_input_background_color()
+        self.HeaderFont = header_font
         self.Justification = justification
         self.InitialState = None
         self.SelectMode = select_mode
@@ -4063,7 +4114,8 @@ class Window:
         self.UniqueKeyCounter = 0
         self.metadata = metadata
         self.ElementJustification = element_justification
-
+        self.AllKeysDict = {}
+        self.margins = margins
 
         if layout is not None:
             self.Layout(layout)
@@ -4089,7 +4141,7 @@ class Window:
         CurrentRow = []  # start with a blank row and build up
         # -------------------------  Add the elements to a row  ------------------------- #
         for i, element in enumerate(args):  # Loop through list of elements and add them to the row
-            if type(element) == list:
+            if type(element) is list:
                 PopupError('Error creating layout',
                       'Layout has a LIST instead of an ELEMENT',
                       'This means you have a badly placed ]',
@@ -4806,6 +4858,139 @@ FlexForm = Window
 
 
 
+
+
+class QtStyle(object):
+    '''
+        API
+
+        # step 1 - make a style
+        ss = QtStyle(QLabel)
+
+        # step 2 - add fields
+        ss['font'] = create_style_from_font()
+        ss['background_color'] = (color, color_default)
+        ss['color'] = (color, color_default)
+        # step 2.1 - add additions
+        ss.append_css_to_end.append(" QScrollBar:vertical { ... some css here ...  } ")
+        # step 2.2 - add anchor
+        ss.my_anchor = '::chunk'
+
+        # step 3 - build result
+        css_str = ss.build_css_string()
+        qt_widget.setStyleSheet(css_str)
+
+        ====== Special fields
+        - font
+        - margin
+        Why they are special? Because of the formatting.
+
+        === === ===
+        made by nngogol
+    '''
+
+    def __init__(self, widget_name=''):
+        self.widget_name = widget_name
+        self.css_props = {}
+        self.my_anchor = None
+
+        self.logging = True
+        self.logging = not True
+        self.append_css_to_end = []
+
+        self.make_secure_check = True  # Check if "css property is valid, i.e. it's present in default names".
+        #                               Make makes development safer, if you have a erro in spelling css-property
+        #                               In production: it can be disabled, I guess.
+
+    def __setitem__(self, css_prop_name, css_prop_value):
+
+        css_prop_name = css_prop_name.replace('_', '-')
+        # validation
+        if not isinstance(css_prop_value, (tuple, list, str)):
+            raise Exception('Bad value fro css property -> %s.' % css_prop_value)
+        if self.make_secure_check:
+            if not is_valid_css_prop(css_prop_name):
+                raise Exception('Bad css property name: ' % css_prop_name)
+
+        self.css_props[css_prop_name] = css_prop_value
+
+    def build_css_string(self):
+        # no css props added -> return empty string
+        if not self.css_props:  # empty case
+            print(f' final_str # {self.widget_name} = ""')
+            return ''
+
+        css_props_str_list = []
+        for key, value in self.css_props.items():
+            # special cases:
+            if key == 'margin' or key == 'padding':
+                # validation
+                if not isinstance(value, (tuple, list)):
+                    raise Exception('Cant handle this TYPE for margin property : %s ' % str(type(value)))
+
+                result_css_string = ''
+
+                if len(value) == 4:
+                    # skip all zeros
+                    if value[0] == value[1] == value[2] == value[3] == 0: result_css_string = ''
+
+                    result_css_string = '{} : {}px {}px {}px {}px;'.format(key, *value)
+                elif len(value) == 1:
+                    # skip all zeros
+                    if value[0] == 0: continue
+
+                    result_css_string = '{} : {}px;'.format(key, value[0])
+                else:
+                    raise Exception('Bad value for margin/padding property: ' % str(value))
+
+                # # Fix for this case:
+                # # Wrong:    margin: 0px;
+                # # Right:    margin: 0;
+                # result_css_string = result_css_string.replace(': 0px', ': 0')
+
+                css_props_str_list.append(result_css_string)
+
+                continue
+            # if key == 'border': ...
+
+            # it's a css string! Format: 'propery: value;''
+            if isinstance(value, str):
+                # is css prop name + css prop value
+                if ':' in value:
+                    css_props_str_list.append(value)
+                # is css value
+                else:
+                    css_props_str_list.append(_to_css_prop(key, value))
+                # we continue, because it was 'string type parsing'
+                continue
+
+            isnot = None
+            # it's a pair! Format: (val, default_val)
+            if isinstance(value, (tuple, list)):
+                user_css_prop_value, isnot = value
+
+            if user_css_prop_value is not None and user_css_prop_value != isnot:
+                css_props_str_list.append(_to_css_prop(key, user_css_prop_value))
+
+        # join all props
+        css_all = ''.join(css_props_str_list)
+        final_str = css_all
+        if self.widget_name:
+            my_anchor = '' if self.my_anchor is None else self.my_anchor
+            final_str = '%s%s { %s }' % (self.widget_name, my_anchor, css_all)
+
+        # if needed: append some css from self.append_css_to_end
+        final_str += ' '.join(self.append_css_to_end)
+
+        if self.logging: print(f'final css string (self.widget_name): {final_str}')
+        return final_str
+
+    def __repr__(self):
+        return self.build_css_string()
+
+
+
+
 # =========================================================================== #
 # Stops the mainloop and sets the event information                           #
 # =========================================================================== #
@@ -4851,31 +5036,37 @@ def convert_tkinter_filetypes_to_qt(filetypes):
 # =========================================================================== #
 def create_style_from_font(font):
     """
-    Convert from font string/tyuple into a Qt style sheet string
-    :param font: "Arial 10 Bold" or ('Arial', 10, 'Bold)
+    Convert from font string/tuple into a Qt style sheet string
+    :param font: "Arial 10 Bold" or ('Arial', 10, 'Bold')
     :return: style string that can be combined with other style strings
     """
 
-    if font is None:
-        return ''
+    if font is None: return ''
+    _font = font.split(' ') if type(font) is str else font
 
-    if type(font) is str:
-        _font = font.split(' ')
-    else:
-        _font = font
-
-    style = ''
-    style += 'font-family: %s;\n' % _font[0]
-    style += 'font-size: %spt;\n' % _font[1]
-    font_items = ''
-    for item in _font[2:]:
-        if item == 'underline':
-            style += 'text-decoration: underline;\n'
+    # parsing name + size
+    font_name, font_size = _font[:2]
+    # parsing options:
+    is_bold, is_underline = False, False
+    if len(_font) > 2:
+        options = _font[2:]
+        for some_option in options:
+            if some_option == 'underline':
+                is_underline = True
         else:
-            font_items += item + ' '
-    if font_items != '':
-        style += 'font: %s;\n' % (font_items)
-    return style
+                is_bold = True
+
+    # build
+    is_bold_text      = 'font-weight : bold;'         if is_bold else ''
+    is_underline_text = 'text-decoration: underline;' if is_underline else ''
+
+    return textwrap.dedent(f'''
+        {is_underline_text}
+        {is_bold_text}
+        font-family: "{font_name}";
+        font-size: {font_size}pt;
+        '''.strip()).replace('\n', '')
+
 
 def set_widget_visiblity(widget, visible):
     if visible is False:
@@ -5646,7 +5837,7 @@ def AddTrayMenuItem(top_menu, sub_menu_info, element, is_sub_menu=False, skip=Fa
         while i < (len(sub_menu_info)):
             item = sub_menu_info[i]
             if i != len(sub_menu_info) - 1:
-                if type(sub_menu_info[i + 1]) == list:
+                if type(sub_menu_info[i + 1]) is list:
                     new_menu = QMenu(top_menu)
                     item = sub_menu_info[i]
                     try:
@@ -5696,8 +5887,22 @@ def AddMenuItem(top_menu, sub_menu_info, element, is_sub_menu=False, skip=False)
         while i < (len(sub_menu_info)):
             item = sub_menu_info[i]
             if i != len(sub_menu_info) - 1:
-                if type(sub_menu_info[i + 1]) == list:
+                if type(sub_menu_info[i + 1]) is list:
                     new_menu = QMenu(top_menu)
+                    #
+                    # # === style ===
+                    # menu_style = _Style('QMenu')
+                    # menu_style['font'] = create_style_from_font(element.Font)
+                    # if element.TextColor is not None and element.TextColor != COLOR_SYSTEM_DEFAULT:
+                    #     menu_style['color'] = element.TextColor
+                    # if element.BackgroundColor is not None and element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
+                    #     menu_style['background-color'] = element.BackgroundColor
+                    # # style['margin'] = full_element_pad
+                    # new_menu.setStyleSheet(menu_style.build_css_string())
+                    # print(menu_style)
+                    # # element.qt_styles = (style,)
+                    # # === style === end
+                    #
                     # Key handling.... strip off key before setting text
                     item = sub_menu_info[i]
                     try:
@@ -5763,42 +5968,18 @@ Q:::::::QQ::::::::Q      t::::::tttt:::::t
 # =====================================   Qt CODE STARTS HERE ====================================================== #
 # ------------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------------ #
-def style_entry(**kwargs):
-    generated_style = ''
-    for Qt_property, value in kwargs.items():
-        generated_style += "\t{} : {};\n".format(Qt_property.replace('_','-'), value)
-
-        # generated_style += "}"
-    return generated_style
-
-def style_generate(qt_element_type, entries):
-    generated_style = qt_element_type + " {\n"
-    generated_style += entries
-    generated_style += "}"
-    return generated_style
-
-
-class Style(object):
-    def __init__(self, id, **kwargs):
-        self.content = id + " {\n}"
-        self.add(**kwargs)
-
-    def add(self, **kwargs):
-        self.content = self.content[:-1]
-        for key, value in kwargs.items():
-            if isinstance(value, (tuple, list)):
-                value, isnot = value
-            else:
-                isnot = None
-            if value is not None and value != isnot:
-                self.content += "\t{} : {};\n".format(key.replace("_", "-"), value)
-        self.content += "}"
-
-    def append(self, value):
-        self.content = self.content[:-1] + value + "\n}"
-
-    def __repr__(self):
-        return self.content
+# to_css_prop(css_prop.replace('_','-'), value)
+def _to_css_prop(key_, val_):
+    return "{}:{}; ".format(key_.replace('_', '-'), val_)
+# def style_generate(qt_element_type, css_props_str):
+#     return '%s {\n %s \n}' % (qt_element_type, css_props_str)
+_valid_css_fields = ['align-content', 'align-items', 'align-self', 'background', 'background-attachment', 'background-color', 'background-image', 'background-position', 'background-size', 'border', 'border-collapse', 'border-image', 'border-radius', 'border-spacing', 'bottom', 'box-decoration-break', 'caret-color', 'clear', 'clip-path', 'color', 'color-adjust', 'column-count', 'column-fill', 'column-gap', 'column-rule', 'column-rule-color', 'column-rule-style', 'column-rule-width', 'column-span', 'column-width', 'columns', 'contain', 'content', 'counter-increment', 'counter-reset', 'counter-set', 'cursor', 'direction', 'display', 'empty-cells', 'fill', 'filter', 'flex', 'flex-basis', 'flex-direction', 'flex-flow', 'flex-grow', 'flex-shrink', 'flex-wrap', 'float', 'font', 'font-display', 'font-family', 'font-feature-settings', 'font-kerning', 'font-optical-sizing', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-synthesis', 'font-variant', 'font-variant-numeric', 'font-weight', 'gap', 'grid-column', 'grid-row', 'grid-template-columns', 'grid-template-rows', 'hanging-punctuation', 'height', 'hyphens', 'image-rendering', 'initial-letter', 'inline-size', 'inset', 'inset-block', 'inset-block-end', 'inset-block-start', 'inset-inline', 'inset-inline-end', 'inset-inline-start', 'isolation', 'justify-content', 'left', 'letter-spacing', 'line-clamp', 'line-height', 'list-style', 'margin', 'mask-image', 'mask-position', 'mask-repeat', 'mask-size', 'max-height', 'max-width', 'min-height', 'min-width', 'mix-blend-mode', 'object-fit', 'object-position', 'offset-anchor', 'offset-distance', 'offset-path', 'offset-rotate', 'opacity', 'order', 'orphans', 'outline', 'outline-offset', 'overflow', 'overflow-anchor', 'overflow-wrap', 'overscroll-behavior', 'padding', 'page-break', 'paint-order', 'perspective', 'perspective-origin', 'place-items', 'pointer-events', 'position', 'quotes', 'resize', 'right', 'row-gap', 'scroll-behavior', 'scroll-margin', 'scroll-padding', 'scroll-snap-align', 'scroll-snap-stop', 'scroll-snap-type', 'scrollbar', 'scrollbar-color', 'scrollbar-gutter', 'scrollbar-width', 'shape-image-threshold', 'shape-margin', 'shape-outside', 'speak', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-width', 'tab-size', 'table-layout', 'text-align', 'text-align-last', 'text-decoration', 'text-decoration-color', 'text-decoration-line', 'text-decoration-skip', 'text-decoration-skip-ink', 'text-decoration-style', 'text-decoration-thickness', 'text-indent', 'text-justify', 'text-overflow', 'text-rendering', 'text-shadow', 'text-stroke', 'text-transform', 'text-underline-offset', 'text-underline-position', 'top', 'touch-action', 'transform', 'transform-origin', 'transform-style', 'transition', 'transition-delay', 'transition-duration', 'transition-property', 'transition-timing-function', 'unicode-bidi', 'unicode-range', 'user-select', 'vertical-align', 'visibility', 'white-space', 'widows', 'width', 'will-change', 'word-break', 'word-spacing', 'writing-mode', 'z-index', 'zoom']
+def is_valid_css_prop(a_css_prop):
+    '''Check if a given property EXISTS in qt Spec'''
+    return True
+    global _valid_css_fields
+    norm_ = a_css_prop.replace('_', '-')
+    return norm_ in _valid_css_fields
 
 
 def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
@@ -5810,6 +5991,8 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
     :param toplevel_form: ???
     :type toplevel_form: (Window)
     """
+    # align2qt_align
+    align2qt_align = {'c': Qt.AlignCenter, 'l': Qt.AlignLeft, 'r': Qt.AlignRight}
 
     border_depth = toplevel_win.BorderDepth if toplevel_win.BorderDepth is not None else DEFAULT_BORDER_WIDTH
     # --------------------------------------------------------------------------- #
@@ -5824,12 +6007,9 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
         # *********** -------  Loop through ELEMENTS  ------- ***********#
         # *********** Make TK Row                             ***********#
         qt_row_layout = QHBoxLayout()
-        if container_elem.ElementJustification.startswith('c'):
-            qt_row_layout.setAlignment(Qt.AlignCenter)
-        elif container_elem.ElementJustification.startswith('r'):
-            qt_row_layout.setAlignment(Qt.AlignRight)
-        elif container_elem.ElementJustification.startswith('l'):
-            qt_row_layout.setAlignment(Qt.AlignLeft)
+        elem_align = container_elem.ElementJustification[0]
+        if elem_align in align2qt_align:
+            qt_row_layout.setAlignment(align2qt_align[elem_align])
         for col_num, element in enumerate(flex_row):
             element.ParentForm = toplevel_win  # save the button's parent form object
             element.row_frame = qt_row_layout
@@ -5860,11 +6040,12 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 auto_size_text = False  # if user has specified a size then it shouldn't autosize
             full_element_pad = [0,0,0,0]       # Top, Right, Bottom, Left
             elementpad = element.Pad if element.Pad is not None else toplevel_win.ElementPadding
-            if type(elementpad[0]) != tuple:   # left and right
+            if type(elementpad[0]) is not tuple:   # left and right
                 full_element_pad[1] = full_element_pad[3] = elementpad[0]
             else:
                 full_element_pad[3], full_element_pad[1] = elementpad[0]
-            if type(elementpad[1]) != tuple:   # top and bottom
+
+            if type(elementpad[1]) is not tuple:   # top and bottom
                 full_element_pad[0] = full_element_pad[2] = elementpad[1]
             else:
                 full_element_pad[0], full_element_pad[2] = elementpad[1]
@@ -5883,18 +6064,16 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 column_widget = QGroupBox()
                 element.Widget = element.QT_QGroupBox = column_widget
                 # column_widget.setFrameShape(QtWidgets.QFrame.NoFrame)
-                style = create_style_from_font(font)
-                if element.BackgroundColor is not None:
-                    style = style_entry(background_color=element.BackgroundColor)
-                    # style += 'background-color: %s;' % element.BackgroundColor
-                style += style_entry(border='0px solid gray')
-                # style += style_entry(margin='{}px {}px {}px {}px'.format(*full_element_pad))
-                # style += style_entry(margin='0px 0px 0px 0px')
-                # style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
 
-                # style += 'border: 0px solid gray; '
-                style = style_generate('QGroupBox', style)
-                column_widget.setStyleSheet(style)
+                # === style ===
+                style = QtStyle('QGroupBox')
+                style['font'] = create_style_from_font(font)
+                if element.BackgroundColor is not None:
+                    style['background_color'] = element.BackgroundColor
+                style['border'] = '0px solid gray' # FIXv2
+                column_widget.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 column_layout = QFormLayout()
                 element.vbox_layout = column_vbox = QVBoxLayout()
@@ -5917,10 +6096,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if not element.Visible:
                     column_widget.setVisible(False)
 
-                if scroll:
-                    qt_row_layout.addWidget(scroll)
-                else:
-                    qt_row_layout.addWidget(column_widget)
+                qt_row_layout.addWidget(scroll if scroll else column_widget, alignment=Qt.AlignVCenter)
             # -------------------------  TEXT placement element  ------------------------- #
             elif element_type == ELEM_TYPE_TEXT:
                 element.Widget = element.QT_Label = qlabel = QLabel(element.DisplayText, toplevel_win.QTWindow)
@@ -5930,24 +6106,25 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     justification = toplevel_win.TextJustification
                 else:
                     justification = DEFAULT_TEXT_JUSTIFICATION
-                if justification[0] == 'c':
-                    element.QT_Label.setAlignment(Qt.AlignCenter)
-                elif justification[0] == 'r':
-                    element.QT_Label.setAlignment(Qt.AlignRight)
+
+                if justification[0] in align2qt_align:
+                    element.QT_Label.setAlignment(align2qt_align[justification[0]])
                 if not auto_size_text:
                     if element_size[0] is not None:
                         element.QT_Label.setFixedWidth(element_size[0])
                     if element_size[1] is not None:
                         element.QT_Label.setFixedHeight(element_size[1])
                 # element.QT_Label.setWordWrap(True)
-                style = Style('QLabel')
-                style.append(create_style_from_font(font))
-                style.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
-                style.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
-                element.QT_Label.setStyleSheet(style.content)
 
-                if element.ClickSubmits:
-                    element.QT_Label.mousePressEvent = element._QtCallbackTextClicked
+                # === style ===
+                style = QtStyle('QLabel')
+                style['font'] = create_style_from_font(font)
+                style['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
+                style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+                style['margin'] = full_element_pad
+                element.QT_Label.setStyleSheet(str(style))
+                element.qt_styles = (style,)
+                # === style === end
 
                 if element.Relief is not None:
                     if element.Relief in (RELIEF_RIDGE, RELIEF_RAISED):
@@ -5960,26 +6137,30 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if element.Margins is not None:
                     m = element.Margins
                     qlabel.setContentsMargins(m[0], m[2], m[1], m[3])  # L T B R
-                if element.Tooltip:
-                    element.QT_Label.setToolTip(element.Tooltip)
+                if element.Tooltip:         element.QT_Label.setToolTip(element.Tooltip)
+                if element.ClickSubmits:    element.QT_Label.mousePressEvent = element._QtCallbackTextClicked
                 if not element.Visible:
                     element.QT_Label.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Label)
+                qt_row_layout.addWidget(element.QT_Label, alignment=Qt.AlignVCenter)
             # -------------------------  BUTTON placement element  ------------------------- #
             elif element_type == ELEM_TYPE_BUTTON:
                 element = element            #type: Button
                 btext = element.ButtonText
                 btype = element.BType
                 element.Widget = element.QT_QPushButton = QPushButton(btext)
-                style = Style('QPushButton')
-                style.append(create_style_from_font(font))
-                style.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
-                style.add(background_color=(element.BackgroundColor))
+                # === style ===
+                style = QtStyle('QPushButton')
+                style['font'] = create_style_from_font(font)
+                style['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
+                style['background_color'] = (element.BackgroundColor)
                 if element.BorderWidth == 0:
-                    style.add(border='none')
-                style.add(margin='{}px {}px {}px {}px'.format(*full_element_pad))
-                # style.add(border='{}px solid gray '.format(border_depth))
-                element.QT_QPushButton.setStyleSheet(style.content)
+                    style['border'] = 'none'
+                style['margin'] = full_element_pad
+                # style['border'] = '{}px solid gray '.format(border_depth)
+                element.QT_QPushButton.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
                 # element.QT_QPushButton.setFlat(False)
                 if (element.AutoSizeButton is False or toplevel_win.AutoSizeButtons is False or element.Size[0] is not None) and element.ImageData is None:
                     if element_size[0] is not None:
@@ -5987,27 +6168,12 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     if element_size[1] is not None:
                         element.QT_QPushButton.setFixedHeight(element_size[1])
 
-                #
-                # elif element.Data is not None:
-                #     qlabel.setText('')
-                #     ba = QtCore.QByteArray.fromRawData(element.Data)
-                #     pixmap = QtGui.QPixmap()
-                #     pixmap.loadFromData(ba)
-                #     qlabel.setPixmap(pixmap)
-                # elif element.DataBase64:
-                #     qlabel.setText('')
-                #     ba = QtCore.QByteArray.fromBase64(element.DataBase64)
-                #     pixmap = QtGui.QPixmap()
-                #     pixmap.loadFromData(ba)
-                #     qlabel.setPixmap(pixmap)
-
                 if element.ImageFilename is not None:
                     element.QT_QPushButton.setIcon(QtGui.QPixmap(element.ImageFilename))
                     element.QT_QPushButton.setIconSize(QtGui.QPixmap(element.ImageFilename).rect().size())
                 if element.ImageData:
                     ba = QtCore.QByteArray.fromBase64(element.ImageData)
-                    pixmap = QtGui.QPixmap()
-                    pixmap.loadFromData(ba)
+                    pixmap = QtGui.QPixmap(); pixmap.loadFromData(ba)
                     element.QT_QPushButton.setIcon(pixmap)
                     element.QT_QPushButton.setIconSize(pixmap.rect().size())
 
@@ -6020,7 +6186,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if not element.Visible:
                     element.QT_QPushButton.setVisible(False)
 
-                qt_row_layout.addWidget(element.QT_QPushButton)
+                qt_row_layout.addWidget(element.QT_QPushButton, alignment=Qt.AlignVCenter)
             # -------------------------  INPUT placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_TEXT:
                 element = element       # type: InputText
@@ -6031,29 +6197,30 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 qlineedit.dragEnterEvent = element._dragEnterEvent
                 qlineedit.dropEvent = element._dropEvent
 
-                if element.Justification[0] == 'c':
-                    element.QT_QLineEdit.setAlignment(Qt.AlignCenter)
-                elif element.Justification[0] == 'r':
-                    element.QT_QLineEdit.setAlignment(Qt.AlignRight)
+                if element.Justification[0] in align2qt_align:
+                    element.QT_QLineEdit.setAlignment(align2qt_align[element.Justification[0]])
                 element.QT_QLineEdit.setText(str(default_text))
 
-                style = Style('QLineEdit')
-                style.append(create_style_from_font(font))
+                # === style ===
+                style = QtStyle('QLineEdit')
+                style['font'] = create_style_from_font(font)
                 if element.Disabled or element.ReadOnly:
                     if element.disabled_readonly_background_color:
-                        style.add(background_color=(element.disabled_readonly_background_color, COLOR_SYSTEM_DEFAULT))
+                        style['background_color'] = (element.disabled_readonly_background_color, COLOR_SYSTEM_DEFAULT)
                     else:
-                        style.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
+                        style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
                     if element.disabled_readonly_text_color:
-                        style.add(color=(element.disabled_readonly_text_color, COLOR_SYSTEM_DEFAULT))
+                        style['color'] = (element.disabled_readonly_text_color, COLOR_SYSTEM_DEFAULT)
                     else:
-                        style.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
+                        style['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
                 else:
-                    style.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
-                    style.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
-                style.add(margin='{}px {}px {}px {}px'.format(*full_element_pad))
-                style.add(border='{}px solid gray '.format(border_depth))
-                element.QT_QLineEdit.setStyleSheet(style.content)
+                    style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+                    style['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray '.format(border_depth)
+                element.QT_QLineEdit.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 if element.AutoSizeText is False or toplevel_win.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6085,38 +6252,39 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_QLineEdit.installEventFilter(element.InputTextWidget)
                 if not element.Visible:
                     element.QT_QLineEdit.setVisible(False)
-                qt_row_layout.addWidget(element.QT_QLineEdit)
+                qt_row_layout.addWidget(element.QT_QLineEdit, alignment=Qt.AlignVCenter)
             # -------------------------  COMBO placement BOX (Drop Down) element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_COMBO:
+                element = element   # type: Combo
                 element.Widget = element.QT_ComboBox = QComboBox()
-                max_line_len = max([len(str(l)) for l in element.Values])
-                if auto_size_text is False:
-                    width = element_size[0]
-                else:
-                    width = max_line_len
 
-                style = Style('QComboBox')
-                style.append(create_style_from_font(font))
-                style.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
-                style.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
-                style.add(border='{}px solid gray '.format(border_depth))
-                style2 = Style('QListView')
-                style2.add(color=(element.TextColor, COLOR_SYSTEM_DEFAULT))
-                style2.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
-
-                element.QT_ComboBox.setStyleSheet(style.content+style2.content)
-
-                if not auto_size_text:
-                    if element_size[0] is not None:
-                        element.QT_ComboBox.setFixedWidth(element_size[0])
-                    if element_size[1] is not None:
-                        element.QT_ComboBox.setFixedHeight(element_size[1])
-
-                if element.Disabled:
-                    element.QT_ComboBox.setDisabled(True)
                 items_as_strings = [str(v) for v in element.Values]
                 # element.QT_ComboBox.addItems(element.Values)
                 element.QT_ComboBox.addItems(items_as_strings)
+
+                # === style ===
+                style = QtStyle('QComboBox')
+                style['font'] = create_style_from_font(font)
+                style['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
+                style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+                style['border'] = '{}px solid gray '.format(border_depth)
+                style['margin'] = full_element_pad
+
+                style2 = QtStyle('QListView')
+                style2['color'] = (element.TextColor, COLOR_SYSTEM_DEFAULT)
+                style2['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+
+                element.QT_ComboBox.setStyleSheet(str(style)+str(style2))
+                element.qt_styles = (style, style2)
+                # === style === end
+
+                if element_size[0] is not None:
+                    element.QT_ComboBox.setFixedWidth(element_size[0])
+                if element_size[1] is not None:
+                    element.QT_ComboBox.setFixedHeight(element_size[1])
+
+                if element.Disabled:
+                    element.QT_ComboBox.setDisabled(True)
 
                 element.QT_ComboBox.setMaxVisibleItems(element.VisibleItems)
                 if element.DefaultValue is not None:
@@ -6135,33 +6303,28 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_ComboBox.setAutoCompletion(True)
                 if not element.Visible:
                     element.QT_ComboBox.setVisible(False)
-                qt_row_layout.addWidget(element.QT_ComboBox)
+                qt_row_layout.addWidget(element.QT_ComboBox, alignment=Qt.AlignVCenter)
             # -------------------------  OPTION MENU (Like ComboBox but different) element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_OPTION_MENU:
-                max_line_len = max([len(str(l)) for l in element.Values])
+                pass
             # -------------------------  LISTBOX placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_LISTBOX:
                 element = element       # type: Listbox
-                max_line_len = max([len(str(l)) for l in element.Values]) if len(element.Values) != 0 else 0
                 element.Widget = element.QT_ListWidget = QListWidget()
-                style = element.QT_ListWidget.styleSheet()
-                # style += """QScrollBar:vertical {
-                #             border: none;
-                #             background:lightgray;
-                #             width:12px;
-                #             margin: 0px 0px 0px 0px;
-                #         } """
-                style = 'QListWidget {'
-                style += create_style_from_font(font)
 
+                # === style ===
+                style = QtStyle('QListWidget')
+                style['font'] = create_style_from_font(font)
                 if element.TextColor is not None and element.TextColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'color: %s;' % element.TextColor
+                    style['color'] = element.TextColor
                 if element.BackgroundColor is not None and element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                element.QT_ListWidget.setStyleSheet(style)
+                    style['background-color'] = element.BackgroundColor # example for mike here
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray; '.format(border_depth)
+                element.QT_ListWidget.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
                 if not auto_size_text:
                     if element_size[0] is not None:
                         element.QT_ListWidget.setFixedWidth(element_size[0])
@@ -6176,15 +6339,11 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_ListWidget.setSelectionMode(QAbstractItemView.ContiguousSelection)
                 elif element.SelectMode == SELECT_MODE_SINGLE:
                     element.QT_ListWidget.setSelectionMode(QAbstractItemView.SingleSelection)
+                if element.Disabled: element.QT_ListWidget.setDisabled(True)
+                if element.ChangeSubmits: element.QT_ListWidget.currentRowChanged.connect(element._QtCurrentRowChanged)
 
-                if element.Disabled:
-                    element.QT_ListWidget.setDisabled(True)
-
-                if element.ChangeSubmits:
-                    element.QT_ListWidget.currentRowChanged.connect(element._QtCurrentRowChanged)
                 # add all Values to the ListWidget
-                items = [str(v) for v in element.Values]
-                element.QT_ListWidget.addItems(items)
+                element.QT_ListWidget.addItems([str(v) for v in element.Values])
                 # select the default items
                 for index, value in enumerate(element.Values):
                     item = element.QT_ListWidget.item(index)
@@ -6195,7 +6354,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_ListWidget.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_ListWidget.setVisible(False)
-                qt_row_layout.addWidget(element.QT_ListWidget)
+                qt_row_layout.addWidget(element.QT_ListWidget, alignment=Qt.AlignVCenter)
             # -------------------------  INPUT MULTILINE placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_MULTILINE:
                 element = element           # type: Multiline
@@ -6207,17 +6366,17 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_TextEdit.dragEnterEvent = element._dragEnterEvent
                 element.QT_TextEdit.dropEvent = element._dropEvent
 
-                style = 'QTextEdit {'
-                style += create_style_from_font(font)
+                # === style ===
+                style = QtStyle('QTextEdit')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray; '.format(border_depth)
+                element.QT_TextEdit.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                element.QT_TextEdit.setStyleSheet(style)
 
                 if element.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6245,24 +6404,25 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 # qt_row_layout.setContentsMargins(*full_element_pad)
                 if not element.Visible:
                     element.QT_TextEdit.setVisible(False)
-                qt_row_layout.addWidget(element.QT_TextEdit)
+                qt_row_layout.addWidget(element.QT_TextEdit, alignment=Qt.AlignVCenter)
             # ------------------------- OUTPUT MULTILINE placement element  ------------------------- #
             elif element_type == ELEM_TYPE_MULTILINE_OUTPUT:
                 element = element           # type: MultilineOutput
                 default_text = element.DefaultText
-                width, height = element_size
                 element.Widget = element.QT_TextBrowser = QTextBrowser()
                 element.QT_TextBrowser.setDisabled(False)
-                style = 'QTextBrowser {'
-                style += create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                element.QT_TextBrowser.setStyleSheet(style)
+
+                # === style ===
+                style = QtStyle('QTextBrowser')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                element.QT_TextBrowser.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
 
                 if element.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6277,7 +6437,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 # qt_row_layout.setContentsMargins(*full_element_pad)
                 if not element.Visible:
                     element.QT_TextBrowser.setVisible(False)
-                qt_row_layout.addWidget(element.QT_TextBrowser)
+                qt_row_layout.addWidget(element.QT_TextBrowser, alignment=Qt.AlignVCenter)
             # -------------------------  INPUT CHECKBOX placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_CHECKBOX:
                 element = element           # type: Checkbox
@@ -6285,14 +6445,17 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_Checkbox.setChecked(element.InitialState)
                 if element.Disabled:
                     element.QT_Checkbox.setDisabled(True)
-                style = create_style_from_font(font)
 
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                element.QT_Checkbox.setStyleSheet(style)
+                # === style ===
+                style = QtStyle('QCheckBox')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                element.QT_Checkbox.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
 
                 if element.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6306,7 +6469,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_Checkbox.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_Checkbox.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Checkbox)
+                qt_row_layout.addWidget(element.QT_Checkbox, alignment=Qt.AlignVCenter)
               # -------------------------  PROGRESSBAR placement element  ------------------------- #
             elif element_type == ELEM_TYPE_PROGRESS_BAR:
                 element.Widget = element.QT_QProgressBar = QProgressBar()
@@ -6321,18 +6484,27 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_QProgressBar.setValue(element.StartValue)
                 if element.Orientation.lower().startswith('v'):
                     element.QT_QProgressBar.setOrientation(QtCore.Qt.Vertical)
-                style = ''
+
+                # === style ===
+                style = QtStyle('QProgressBar')
+                style_chunk = QtStyle('QProgressBar::chunk')
+                style['margin'] = full_element_pad
                 # style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
                 # style += 'border: {}px solid gray; '.format(border_depth)
                 if element.BarColor != (None, None):
                     if element.BarColor[0] is not None:
-                        style += "QProgressBar::chunk { background-color: %s; }"%element.BarColor[0]
-                    if element.BarColor[1] is not None:
-                        style += "QProgressBar { border: %spx solid grey; border-radius: 0px; background-color: %s; }"%(border_depth, element.BarColor[1])
-                    else:
-                        style += "QProgressBar { border: %spx solid grey; border-radius: 0px; background-color: %s}"%(border_depth, DEFAULT_PROGRESS_BAR_COLOR[1])
+                        style_chunk['background-color'] = element.BarColor[0]
 
-                element.QT_QProgressBar.setStyleSheet(style)
+                    style['border'] = '%spx solid grey' % border_depth
+                    style['border-radius'] = '0px'
+                    style['background-color'] = str(element.BarColor[1] \
+                                                if element.BarColor[1] is not None \
+                                                else DEFAULT_PROGRESS_BAR_COLOR[1])
+
+
+                element.QT_QProgressBar.setStyleSheet(style.build_css_string()+style_chunk.build_css_string())
+                element.qt_styles = (style, style_chunk)
+                # === style === end
 
                 element.QT_QProgressBar.setTextVisible(False)
                 if element.Tooltip:
@@ -6340,7 +6512,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if not element.Visible:
                     element.QT_QProgressBar.setVisible(False)
 
-                qt_row_layout.addWidget(element.QT_QProgressBar)
+                qt_row_layout.addWidget(element.QT_QProgressBar, alignment=Qt.AlignVCenter)
             # -------------------------  INPUT RADIO placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_RADIO:
                 element = element           # type: Radio
@@ -6349,15 +6521,17 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_Radio_Button = qradio
                 if element.Disabled:
                     element.QT_Radio_Button.setDisabled(True)
-                if default_value:
-                    qradio.setChecked(True)
-                style = create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                element.QT_Radio_Button.setStyleSheet(style)
+                if default_value:    qradio.setChecked(True)
+
+                # === style ===
+                style = QtStyle('QRadioButton')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                element.QT_Radio_Button.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 if element.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6382,7 +6556,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_Radio_Button.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_Radio_Button.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Radio_Button)
+                qt_row_layout.addWidget(element.QT_Radio_Button, alignment=Qt.AlignVCenter)
                 # -------------------------  INPUT SPIN placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_SPIN:
                 # element.QT_Spinner = QSpinBox()
@@ -6393,16 +6567,17 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                         element.QT_Spinner.setValue(element.QT_Spinner.valueFromText(element.DefaultValue))
                     except:
                         pass
-                style = 'QSpinBox {'
-                style += create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                element.QT_Spinner.setStyleSheet(style)
+                # === style ===
+                style = QtStyle('QSpinBox')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                element.QT_Spinner.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
                 # element.QT_Spinner.setRange(element.Values[0], element.Values[1])
                 if not auto_size_text:
                     if element_size[0] is not None:
@@ -6418,28 +6593,24 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_Spinner.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_Spinner.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Spinner)
+                qt_row_layout.addWidget(element.QT_Spinner, alignment=Qt.AlignVCenter)
             # -------------------------  OUTPUT placement element  ------------------------- #
             elif element_type == ELEM_TYPE_OUTPUT:
                 element = element       # type: Output
                 element.Widget = element.QT_TextBrowser = QTextBrowser()
                 element.QT_TextBrowser.setDisabled(False)
-                style = 'QTextBrowser {'
-                style += create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                # style += """QScrollBar:vertical {
-                #             border: none;
-                #             background:lightgray;
-                #             width:12px;
-                #             margin: 0px 0px 0px 0px;
-                #         } """
-                style += '}'
-                element.QT_TextBrowser.setStyleSheet(style)
+
+                # === style ===
+                style = QtStyle('QTextBrowser')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                # style += "QScrollBar:vertical {border: none; background:lightgray; width:12px; margin: 0px 0px 0px 0px; } "
+                element.QT_TextBrowser.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 if element.AutoSizeText is False or element.Size[0] is not None:
                     if element_size[0] is not None:
@@ -6453,7 +6624,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_TextBrowser.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_TextBrowser.setVisible(False)
-                qt_row_layout.addWidget(element.QT_TextBrowser)
+                qt_row_layout.addWidget(element.QT_TextBrowser, alignment=Qt.AlignVCenter)
             # -------------------------  IMAGE placement element  ------------------------- #
             elif element_type == ELEM_TYPE_IMAGE:
                 element = element           # type: Image
@@ -6477,17 +6648,19 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     pixmap.loadFromData(ba)
                     qlabel.setPixmap(pixmap)
 
-                style = ''
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                element.QT_QLabel.setStyleSheet(style)
-                if element.Tooltip:
-                    element.QT_QLabel.setToolTip(element.Tooltip)
+                # === style ===
+                style = QtStyle('QLabel')
+                style['margin'] = full_element_pad
+                element.QT_QLabel.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
+                if element.Tooltip:         element.QT_QLabel.setToolTip(element.Tooltip)
                 if element.ClickSubmits:
                     element.QT_QLabel.mousePressEvent = element.QtCallbackImageClicked
                 if not element.Visible:
                     element.QT_QLabel.setVisible(False)
-                qt_row_layout.addWidget(element.QT_QLabel)
+                qt_row_layout.addWidget(element.QT_QLabel, alignment=Qt.AlignVCenter)
             # -------------------------  Canvas placement element  ------------------------- #
             elif element_type == ELEM_TYPE_CANVAS:
                 width, height = element_size
@@ -6504,12 +6677,15 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element.QT_QGraphicsScene.setSceneRect(0,0,element.CanvasSize[0],element.CanvasSize[1])
                 element.QT_QGraphicsView.setScene(element.QT_QGraphicsScene)
 
-                style = Style('QGraphicsView')
-                style.add(background_color=(element.BackgroundColor, COLOR_SYSTEM_DEFAULT))
-                style.add(margin='{}px {}px {}px {}px'.format(*full_element_pad))
-                style.add(border='{}px solid gray '.format(border_depth))
+                # === style ===
+                style = QtStyle('QGraphicsView')
+                style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray '.format(border_depth)
                 # print(f'style content = {style.content}')
-                element.QT_QGraphicsView.setStyleSheet(style.content)
+                element.QT_QGraphicsView.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 qgraphicsview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
                 qgraphicsview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -6518,7 +6694,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_QGraphicsView.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_QGraphicsView.setVisible(False)
-                qt_row_layout.addWidget(element.QT_QGraphicsView)
+                qt_row_layout.addWidget(element.QT_QGraphicsView, alignment=Qt.AlignVCenter)
             # -------------------------  MENUBAR placement element  ------------------------- #
             elif element_type == ELEM_TYPE_MENUBAR:
                 element = element           # type: Menu
@@ -6535,10 +6711,26 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                         baritem.setTitle(menu_entry[0])
                     element.QT_QMenuBar.addAction(baritem.menuAction())
                     AddMenuItem(baritem, menu_entry[1], element)
+                    # === style ===
+                    menu_style = QtStyle('QMenu')
+                    menu_style['font'] = create_style_from_font(font)
+                    if element.MenuItemTextColor is not None and element.MenuItemTextColor != COLOR_SYSTEM_DEFAULT:
+                        menu_style['color'] = element.MenuItemTextColor
+                    if element.MenuItemBackgroundColor is not None and element.MenuItemBackgroundColor != COLOR_SYSTEM_DEFAULT:
+                        menu_style['background-color'] = element.MenuItemBackgroundColor
+                    # style['margin'] = full_element_pad
+                    baritem.setStyleSheet(menu_style.build_css_string())
+                    # === style === end
+
+
                 if element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
-                    style = Style('QMenuBar')
-                    style.add(background_color=(element.BackgroundColor))
-                    element.QT_QMenuBar.setStyleSheet(style.content)
+                    # === style ===
+                    style = QtStyle('QMenuBar')
+                    style['background_color'] = (element.BackgroundColor, COLOR_SYSTEM_DEFAULT)
+                    element.QT_QMenuBar.setStyleSheet(style.build_css_string())
+                    element.qt_styles = (style,)
+                    # === style === end
+
                 if not element.Visible:
                     element.QT_QMenuBar.setVisible(False)
                 toplevel_win.QT_QMainWindow.setMenuBar(element.QT_QMenuBar)
@@ -6546,16 +6738,22 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
             elif element_type == ELEM_TYPE_BUTTONMENU:
                 btext = element.ButtonText
                 element.Widget = element.QT_QPushButton = QPushButton(btext)
-                style = create_style_from_font(font)
+
+                # === style ===
+                style = QtStyle('QPushButton')
+                style['font'] = create_style_from_font(font)
                 if element.TextColor is not None and element.TextColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'color: %s;' % element.TextColor
+                    style['color'] = element.TextColor
                 if element.BackgroundColor is not None and element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'background-color: %s;' % element.BackgroundColor
+                    style['background-color'] = element.BackgroundColor
                 if element.BorderWidth == 0:
-                    style += 'border: none;'
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                # style += 'border: {}px solid gray; '.format(border_depth)
-                element.QT_QPushButton.setStyleSheet(style)
+                    style['border'] = 'none'
+                style['margin'] = full_element_pad
+                element.QT_QPushButton.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
+
+
                 if (element.AutoSizeButton is False or toplevel_win.AutoSizeButtons is False or element.Size[0] is not None) and element.ImageData is None:
                     if element_size[0] is not None:
                         element.QT_QPushButton.setFixedWidth(element_size[0])
@@ -6582,46 +6780,128 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 qmenu.setTitle(menu_def[0])
                 AddMenuItem(qmenu, menu_def[1], element)
 
+                # === style ===
+                menu_style = QtStyle('QMenu')
+                menu_style['font'] = create_style_from_font(font)
+                if element.TextColor is not None and element.TextColor != COLOR_SYSTEM_DEFAULT:
+                    menu_style['color'] = element.TextColor
+                if element.BackgroundColor is not None and element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
+                    menu_style['background-color'] = element.BackgroundColor
+                # style['margin'] = full_element_pad
+                qmenu.setStyleSheet(menu_style.build_css_string())
+                # element.qt_styles = (style,)
+                # === style === end
+
                 element.QT_QPushButton.setMenu(qmenu)
                 if element.Tooltip:
                     element.QT_QPushButton.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_QPushButton.setVisible(False)
-                qt_row_layout.addWidget(element.QT_QPushButton)
+                qt_row_layout.addWidget(element.QT_QPushButton, alignment=Qt.AlignVCenter)
             # -------------------------  Frame placement element  ------------------------- #
             elif element_type == ELEM_TYPE_FRAME:
+                element = element       # type: Frame
                 element.Widget = column_widget = QGroupBox()
                 element.QT_QGroupBox = column_widget
-                style = create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                # style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                # style += 'border: {}px solid gray; '.format(border_depth)
-                column_widget.setStyleSheet(style)
+
+                # === style ===
+                style = QtStyle('QGroupBox')
+                # style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                # style['origin'] = 'margin'
+                style['font'] = create_style_from_font(font)
+                if element.FrameColor is not None:
+                    style['border'] = '{}px solid {} '.format(border_depth, element.FrameColor)
+                else:
+                    style['border'] = '{}px solid {} '.format(border_depth, 'gainsboro')    # default to a light gray
+
+
+                # style['padding'] = (10,10,10,10)
+                # style['margin'] = full_element_pad
+                # style['padding'] = (0,15,15,15)
+                # style['padding'] = (10,10,10,10)
+                style['margin-top'] = '10px'
+                # style['top'] = '60px'
+                # style['margin'] = (0,0,0,0)
+                style['origin'] = 'margin'
+
+                style_title = QtStyle('QGroupBox::title')
+                # style_title['padding'] =  (0,5,0,5)
+                style_title['margin'] = (0,0,0,0)
+
+                style_title['left'] =  '15px'
+                # style_title['margin-top'] =  '-20px'
+                # style_title['top'] =  '20px'
+                style_title['subcontrol-origin'] = 'margin'
+                # style_title['subcontrol-origin'] = 'border'
+
+                # style_title['subcontrol-origin'] = 'padding'
+                style_title['subcontrol-position'] = 'top left'
+
+                column_widget.setStyleSheet(str(style)+str(style_title))
+                # column_widget.setStyleSheet(str(style))
+                # print(element.Widget.styleSheet())
+                element.qt_styles = (style, )
+                # === style === end
 
                 column_widget.setTitle(element.Title)
-                column_layout = QFormLayout()
-                column_vbox = QVBoxLayout()
+
+                column_layout, column_vbox = QFormLayout(), QVBoxLayout()
                 PackFormIntoFrame(element, column_layout, toplevel_win)
                 column_vbox.addLayout(column_layout)
                 column_widget.setLayout(column_vbox)
+
+                # Add a padding groupbox
+                pad_layout, pad_vbox = QFormLayout(), QVBoxLayout()
+                pad_groupbox = QGroupBox()
+
+                pad_vbox.addLayout(pad_layout)
+                pad_groupbox.setLayout(pad_vbox)
+                pad_vbox.addWidget(column_widget)
+
+                pad_layout.setSpacing(0)
+                pad_vbox.setSpacing(0)
+                # === style ===
+                style = QtStyle('QGroupBox')
+                # style['font'] = create_style_from_font(font)
+                style['border'] = '0px'
+                style['margin'] = (0,0,0,0)
+                # style['margin'] = full_element_pad
+
+                style['padding'] = (0,0,0,0)
+                style['margin-top'] = '0px'
+                style['origin'] = 'content'
+                style_title = QtStyle('QGroupBox::title')
+                style_title['subcontrol-origin'] = 'content'
+
+                style_title['padding'] =  (0,0,0,0)
+                style_title['margin'] = (0,0,0,0)
+                pad_groupbox.setStyleSheet(str(style)+str(style_title))
+                # === style === end
+
+
                 if element.Tooltip:
                     column_widget.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_QGroupBox.setVisible(False)
-                qt_row_layout.addWidget(column_widget)
+
+                qt_row_layout.addWidget(pad_groupbox)
+                # qt_row_layout.addWidget(column_widget)
             # -------------------------  Tab placement element  ------------------------- #
             elif element_type == ELEM_TYPE_TAB:
                 element.Widget = tab_widget = QWidget()
                 element.QT_QWidget = tab_widget
                 # tab_widget.setFrameShape(QtWidgets.QFrame.NoFrame)
-                style = create_style_from_font(font)
+
+                # === style ===
+                style = QtStyle('QTabWidget')
+                style['font'] = create_style_from_font(font)
                 if element.BackgroundColor is not None:
                     # style += 'background-color: %s;' % element.BackgroundColor
                     # style += 'QTabWidget > QWidget > QWidget {background: %s;}'% element.BackgroundColor
-                    style += 'QTabWidget::pane {background: %s;}'% element.BackgroundColor
+                    style['background-color'] = element.BackgroundColor
+                    style.my_anchor = '::pane'
                     # style += 'background-color: %s;' % element.BackgroundColor
                     tab_widget.setAutoFillBackground(True)
                     palette = tab_widget.palette()
@@ -6629,12 +6909,13 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     tab_widget.setPalette(palette)
 
                 # style += 'border: {}px solid gray; '.format(border_depth)
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                # print(f'Tab widget style {style}')
-                tab_widget.setStyleSheet(style)
+                style['margin'] = full_element_pad
+                tab_widget.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
-                column_layout = QFormLayout()
-                column_vbox = QVBoxLayout()
+
+                column_layout, column_vbox = QFormLayout(), QVBoxLayout()
 
                 PackFormIntoFrame(element, column_layout, toplevel_win)
 
@@ -6650,14 +6931,23 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 element = element       # type:TabGroup
                 element.Widget = element.QT_QTabWidget = qtab =QTabWidget()
 
-                style = qtab.styleSheet()
+                # === style ===
+                style = QtStyle('QTabWidget')
+                # print(f'qtab.styleSheet() -> {qtab.styleSheet()}')
+                # style = qtab.styleSheet() # FIXv2
                 if element.SelectedTitleColor not in (None, COLOR_SYSTEM_DEFAULT):
-                    style += 'QTabBar::tab:selected {background: %s;}'%element.SelectedTitleColor
+                    style.my_anchor = '::tab:selected'
+                    style['background'] = element.SelectedTitleColor
                 if element.BackgroundColor not in (None, COLOR_SYSTEM_DEFAULT):
-                    style += 'QTabBar::tab {background: %s;}'% element.BackgroundColor
+                    style.my_anchor = '::tab'
+                    style['background'] = element.BackgroundColor
                 if element.TextColor not in (None, COLOR_SYSTEM_DEFAULT):
-                    style += 'QTabBar::tab {color: %s;}'%element.TextColor
-                qtab.setStyleSheet(style)
+                    style.my_anchor = '::tab'
+                    style['color'] = element.TextColor
+                style['margin'] = full_element_pad
+                qtab.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
                 if element.TabLocation is not None:
                     position_dict = {'left': QtWidgets.QTabWidget.TabPosition.West, 'right': QtWidgets.QTabWidget.TabPosition.East, 'top': QtWidgets.QTabWidget.TabPosition.North, 'bottom': QtWidgets.QTabWidget.TabPosition.South, 'lefttop': QtWidgets.QTabWidget.TabPosition.North,
@@ -6669,7 +6959,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                         print('Bad tab position specified {}', element.TabLocation)
                 PackFormIntoFrame(element, element.ParentForm.QFormLayout, toplevel_win)
 
-                qt_row_layout.addWidget(element.QT_QTabWidget)
+                qt_row_layout.addWidget(element.QT_QTabWidget, alignment=Qt.AlignVCenter)
                 if not element.Visible:
                     element.QT_QTabWidget.setVisible(False)
 
@@ -6679,22 +6969,20 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
             elif element_type == ELEM_TYPE_INPUT_SLIDER:
                 element = element           # type: Slider
                 element.Widget = element.QT_Slider = QSlider()
-                if element.Orientation.startswith('h'):
-                    element.QT_Slider.setOrientation(Qt.Horizontal)
-                else:
-                    element.QT_Slider.setOrientation(Qt.Vertical)
-                if element.Disabled:
-                    element.QT_Slider.setDisabled(True)
-                style = create_style_from_font(font)
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                element.QT_Slider.setStyleSheet(style)
+                element.QT_Slider.setOrientation(Qt.Horizontal if element.Orientation.startswith('h') else Qt.Vertical)
+                if element.Disabled: element.QT_Slider.setDisabled(True)
 
-                element.QT_Slider.setMinimum(element.Range[0])
-                element.QT_Slider.setMaximum(element.Range[1])
+                # === style ===
+                style = QtStyle('QSlider')
+                style['font'] = create_style_from_font(font)
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                element.QT_Slider.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
+                element.QT_Slider.setMinimum(element.Range[0]); element.QT_Slider.setMaximum(element.Range[1])
                 position = QSlider.TicksBothSides
                 if element.Relief == RELIEF_TICK_POSITION_NO_TICKS:
                     position = QSlider.NoTicks
@@ -6712,13 +7000,11 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
 
                 if element.TickInterval is not None:
                     element.QT_Slider.setTickInterval(element.TickInterval)
+                if element_size[0] is not None: element.QT_Slider.setFixedWidth(element_size[0])
+                if element_size[1] is not None: element.QT_Slider.setFixedHeight(element_size[1])
                 if element.Resolution is not None:
                     element.QT_Slider.setSingleStep(element.Resolution)
                     element.QT_Slider.setPageStep(element.Resolution)
-                if element_size[0] is not None:
-                    element.QT_Slider.setFixedWidth(element_size[0])
-                if element_size[1] is not None:
-                    element.QT_Slider.setFixedHeight(element_size[1])
                 element.QT_Slider.setValue(element.DefaultValue)
 
                 if element.ChangeSubmits:
@@ -6727,35 +7013,29 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_Slider.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_Slider.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Slider)
+                qt_row_layout.addWidget(element.QT_Slider, alignment=Qt.AlignVCenter)
             # -------------------------  DIAL placement element  ------------------------- #
             elif element_type == ELEM_TYPE_INPUT_DIAL:
                 element.Widget = element.QT_Dial = qdial = QDial()
 
-                style = create_style_from_font(font)
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                element.QT_Dial.setStyleSheet(style)
+                # === style ===
+                style = QtStyle('QDial')
+                style['font'] = create_style_from_font(font)
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                element.QT_Dial.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
+                # === style === end
 
-                if element.Disabled:
-                    element.QT_Dial.setDisabled(True)
-
-                element.QT_Dial.setMinimum(element.Range[0])
-                element.QT_Dial.setMaximum(element.Range[1])
-
-                qdial.setNotchesVisible(True)
-                if element.TickInterval is not None:
-                    qdial.setNotchTarget(element.TickInterval)
-                if element.Resolution is not None:
-                    element.QT_Dial.setSingleStep(element.Resolution)
-                if element_size[0] is not None:
-                    element.QT_Dial.setFixedWidth(element_size[0])
-                if element_size[1] is not None:
-                    element.QT_Dial.setFixedHeight(element_size[1])
+                if element.Disabled: element.QT_Dial.setDisabled(True)
+                element.QT_Dial.setMinimum(element.Range[0]); element.QT_Dial.setMaximum(element.Range[1])
                 element.QT_Dial.setValue(element.DefaultValue)
-
+                qdial.setNotchesVisible(True)
+                if element.TickInterval is not None:    qdial.setNotchTarget(element.TickInterval)
+                if element.Resolution is not None:      element.QT_Dial.setSingleStep(element.Resolution)
+                if element_size[0] is not None:         element.QT_Dial.setFixedWidth(element_size[0])
+                if element_size[1] is not None:         element.QT_Dial.setFixedHeight(element_size[1])
                 if element.ChangeSubmits:
                     element.QT_Dial.valueChanged.connect(element._QtCallbackValueChanged)
                 if element.Tooltip:
@@ -6763,7 +7043,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 # qt_row_layout.setContentsMargins(*full_element_pad)
                 if not element.Visible:
                     element.QT_Dial.setVisible(False)
-                qt_row_layout.addWidget(element.QT_Dial)
+                qt_row_layout.addWidget(element.QT_Dial, alignment=Qt.AlignVCenter)
             # -------------------------  Stretch placement element  ------------------------- #
             elif element_type == ELEM_TYPE_STRETCH:
                 element = element       # type: Stretch
@@ -6775,29 +7055,27 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if element.NumRows is not None:
                     element.QT_TableWidget.setFixedHeight(element.NumRows*35+25)
                 # element.QT_TableWidget = QTableWidget()
-                style = ''
-                if element.HeaderBackgroundColor is not None:
-                    style += 'QHeaderView::section {background-color: %s;}\n' % element.HeaderBackgroundColor
-                if element.HeaderTextColor is not None:
-                    style += 'QHeaderView::section {color: %s;}\n' % element.HeaderTextColor
-                style += 'QTableWidget {'
-                style += create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;\n' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
+                # === style ===
 
+                style = QtStyle('QTableWidget')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
 
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                style += """QScrollBar:vertical {
-                            border: none;
-                            background:lightgray;
-                            width:12px;
-                            margin: 0px 0px 0px 0px;
-                        } """
-                element.QT_TableWidget.setStyleSheet(style)
+                # more css: ScrollBar
+                style.append_css_to_end.append(" QScrollBar:vertical {border: none; background:lightgray; width:12px; margin: 0px 0px 0px 0px; } ")
+                # more css: QHeaderView
+                header_style = QtStyle('QHeaderView::section')
+                header_style['font'] = create_style_from_font(element.HeaderFont if element.HeaderFont is not None else font)
+                header_style['background-color'] = element.HeaderBackgroundColor
+                header_style['color'] = element.HeaderTextColor
+
+                element.QT_TableWidget.setStyleSheet(style.build_css_string() + header_style.build_css_string())
+                element.qt_styles = (style, header_style)
+                # === style === end
+
                 if element.ChangeSubmits:
                     element.QT_TableWidget.itemSelectionChanged.connect(element._QtCallbackCellActivated)
                 element.QT_TableWidget.setRowCount(len(element.Values))
@@ -6817,7 +7095,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                 if not element.Visible:
                     element.QT_TableWidget.setVisible(False)
 
-                qt_row_layout.addWidget(element.QT_TableWidget)
+                qt_row_layout.addWidget(element.QT_TableWidget, alignment=Qt.AlignVCenter)
             # -------------------------  Tree placement element  ------------------------- #
             elif element_type == ELEM_TYPE_TREE:
                 element = element   # type: Tree
@@ -6849,11 +7127,10 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     # treeview.column(heading, width=width * CharWidthInPixels(), anchor=anchor)
                 def add_treeview_data(node, widget):
                     # print(f'Inserting {node.key} under parent {node.parent}')
+                    child = widget
                     if node != element.TreeData.root_node:
                         child = QTreeWidgetItem(widget)
                         child.setText(0, str(node.text))
-                    else:
-                        child = widget
                     # if node.key != '':
                     # child.setData(0,0,node.values)
                     if type(node.icon) is bytes:
@@ -6874,22 +7151,25 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
 
                 add_treeview_data(element.TreeData.root_node, element.QT_QTreeWidget)
 
-                style = 'QTreeWidget {'
-                style += create_style_from_font(font)
-                if element.TextColor is not None:
-                    style += 'color: %s;\n' % element.TextColor
-                if element.BackgroundColor is not None:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                style += 'border: {}px solid gray; '.format(border_depth)
-                style += '}'
-                style += """QScrollBar:vertical {              
-                            border: none;
-                            background:lightgray;
-                            width:12px;
-                            margin: 0px 0px 0px 0px;
-                        } """
-                element.QT_QTreeWidget.setStyleSheet(style)
+                # === style ===
+                style = QtStyle('QTreeWidget')
+                style['font'] = create_style_from_font(font)
+                if element.TextColor is not None:       style['color'] = element.TextColor
+                if element.BackgroundColor is not None: style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                style['border'] = '{}px solid gray'.format(border_depth)
+                style.append_css_to_end.append(" QScrollBar:vertical {border: none; background:lightgray; width:12px; margin: 0px 0px 0px 0px; } ")
+
+                header_style = QtStyle('QHeaderView::section')
+                header_style['font'] = create_style_from_font(element.HeaderFont if element.HeaderFont is not None else font)
+                header_style['background-color'] = element.HeaderBackgroundColor
+                header_style['color'] = element.HeaderTextColor
+
+                element.QT_QTreeWidget.setStyleSheet(style.build_css_string() + header_style.build_css_string())
+                element.qt_styles = (style, header_style)
+                # === style === end
+
+
                 if element.ChangeSubmits:
                     element.QT_QTreeWidget.itemSelectionChanged.connect(element._QtCallbackCellActivated)
 
@@ -6900,7 +7180,7 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                     element.QT_QTreeWidget.setToolTip(element.Tooltip)
                 if not element.Visible:
                     element.QT_QTreeWidget.setVisible(False)
-                qt_row_layout.addWidget(element.QT_QTreeWidget)
+                qt_row_layout.addWidget(element.QT_QTreeWidget, alignment=Qt.AlignVCenter)
             # -------------------------  Separator placement element  ------------------------- #
             elif element_type == ELEM_TYPE_SEPARATOR:
                 element = element           # type: HorizontalSeparator
@@ -6910,23 +7190,28 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
                         element.QT_Label.setFixedWidth(element_size[0])
                     if element_size[1] is not None:
                         element.QT_Label.setFixedHeight(element_size[1])
-                style = ''
+                style = QtStyle('QLabel')
                 if element.TextColor is not None and element.TextColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'color: %s;' % element.TextColor
+                    style['color'] = element.TextColor
                 if element.BackgroundColor is not None and element.BackgroundColor != COLOR_SYSTEM_DEFAULT:
-                    style += 'background-color: %s;' % element.BackgroundColor
-                style += 'margin: {}px {}px {}px {}px;'.format(*full_element_pad)
-                element.QT_Label.setStyleSheet(style)
+                    style['background-color'] = element.BackgroundColor
+                style['margin'] = full_element_pad
+                element.QT_Label.setStyleSheet(style.build_css_string())
+                element.qt_styles = (style,)
 
                 qlabel.setFrameStyle(QFrame.VLine if element.Orientation[0] =='v' else QFrame.HLine)
 
-                qt_row_layout.addWidget(element.QT_Label)
+                qt_row_layout.addWidget(element.QT_Label, alignment=Qt.AlignVCenter)
 
-                pass
+            # Align the Element on center in the row
+            # try:
+            #     element.Widget.setAlignment(element.Widget.alignment() | Qt.AlignVCenter)
+            # except Exception as e:
+            #     print(f'* Alignment error {e}')
 
         # ............................DONE WITH ROW pack the row of widgets ..........................#
-        qt_row_layout.setSpacing(toplevel_win.ElementPadding[0])
-        containing_frame.setSpacing(toplevel_win.ElementPadding[1])
+        qt_row_layout.setSpacing(0)
+        containing_frame.setSpacing(0)
         containing_frame.addRow('', qt_row_layout)
 
         # done with row, pack the row of widgets
@@ -6936,7 +7221,6 @@ def PackFormIntoFrame(container_elem, containing_frame, toplevel_win):
 
 def ConvertFlexToTK(window):
     InitializeResults(window)
-    pass
     master = 000000
     PackFormIntoFrame(window, window.QFormLayout, window)
     # ....................................... DONE creating and laying out window ..........................#
@@ -6991,8 +7275,8 @@ def stop_timer(timer):
 def StartupTK(window):
     """
     Does the building of the window with all the widgets
-    :param my_flex_form: you window object
-    :type my_flex_form: (Window)
+    :param window: you window object
+    :type window: (Window)
     """
 
     global using_pyqt5
@@ -7052,12 +7336,26 @@ def StartupTK(window):
     #     window.QTWindow.setWindowFlags(Qt.WindowStaysOnTopHint)
 
 
-    # style = 'QMainWindow {'
-    # style = window.QT_QMainWindow.styleSheet()
+    style = QtStyle('QMainWindow')
     if window.BackgroundColor is not None and window.BackgroundColor != COLOR_SYSTEM_DEFAULT:
-        style = 'background-color: %s;' % window.BackgroundColor
-        # style += '}'
-        window.QT_QMainWindow.setStyleSheet(style)
+        style['background-color'] = window.BackgroundColor
+        window.QT_QMainWindow.setStyleSheet(str(style))
+
+    if window.margins != (None, None):
+        margin_left = margin_right = margin_top = margin_bottom = 0
+        if isinstance(window.margins[0], tuple):
+            margin_left = window.margins[0][0]
+            margin_right = window.margins[0][1]
+        elif isinstance(window.margins[0], int):
+            margin_left = window.margins[0]
+            margin_right = window.margins[0]
+        if isinstance(window.margins[1], tuple):
+            margin_top = window.margins[1][0]
+            margin_bottom = window.margins[1][1]
+        elif isinstance(window.margins[1], int):
+            margin_top = window.margins[1]
+            margin_bottom = window.margins[1]
+        window.QT_QMainWindow.setContentsMargins(margin_left, margin_top, margin_right, margin_bottom)
 
     if window.BackgroundImage is not None:
         qlabel = QLabel(window.QTWindow)
@@ -8329,8 +8627,6 @@ def ChangeLookAndFeel(index, force=False):
     :type index: (str)
     :param force:  no longer used
     :type force: (bool)
-    :return: None
-    :rtype: None
     """
     global CURRENT_LOOK_AND_FEEL
 
@@ -8355,7 +8651,7 @@ def ChangeLookAndFeel(index, force=False):
     elif opt2 in lf_values:
         ix = lf_values.index(opt2)
     else:
-        ix = random.randint(0, len(lf_values) - 1)
+        ix = random.random.randint(0, len(lf_values) - 1)
         print('** Warning - {} Theme is not a valid theme. Change your theme call. **'.format(index))
         print('valid values are', list_of_look_and_feel_values())
         print('Instead, please enjoy a random Theme named {}'.format(list_of_look_and_feel_values()[ix]))
@@ -8367,7 +8663,6 @@ def ChangeLookAndFeel(index, force=False):
 
         # Color the progress bar using button background and input colors...unless they're the same
         if colors['PROGRESS'] != COLOR_SYSTEM_DEFAULT:
-            if colors['PROGRESS'] == DEFAULT_PROGRESS_BAR_COMPUTE:
                 if colors['BUTTON'][1] != colors['INPUT'] and colors['BUTTON'][1] != colors['BACKGROUND']:
                     colors['PROGRESS'] = colors['BUTTON'][1], colors['INPUT']
                 else:  # if the same, then use text input on top of input color
@@ -8556,8 +8851,11 @@ def Popup(*args, title=None, button_color=None, background_color=None, text_colo
         # fancy code to check if string and convert if not is not need. Just always convert to string :-)
         # if not isinstance(message, str): message = str(message)
         message = str(message)
-        if message.count('\n'):
-            message_wrapped = message
+        if message.count('\n'):         # if there are line breaks, then wrap each segment separately
+            # message_wrapped = message         # used to just do this, but now breaking into smaller pieces
+            message_wrapped = ''
+            msg_list = message.split('\n')      # break into segments that will each be wrapped
+            message_wrapped = '\n'.join([textwrap.fill(msg, local_line_width) for msg in msg_list])
         else:
             message_wrapped = textwrap.fill(message, local_line_width)
         message_wrapped_lines = message_wrapped.count('\n') + 1
@@ -8566,7 +8864,8 @@ def Popup(*args, title=None, button_color=None, background_color=None, text_colo
         max_line_total = max(max_line_total, width_used)
         # height = _GetNumLinesNeeded(message, width_used)
         height = message_wrapped_lines
-        layout.append([Text(message_wrapped, auto_size_text=True, text_color=text_color, background_color=background_color)])
+        window.AddRow(
+            Text(message_wrapped, auto_size_text=True, text_color=text_color, background_color=background_color))
         total_lines += height
 
     # if total_lines < 3:
@@ -9470,7 +9769,7 @@ def main():
                     key='_LISTBOX_', font='Courier 12', text_color='red',)],
         [Combo([1,2,3], size=(200, 35), tooltip='Combo', visible_items=2, key='_COMBO_')],
         [Spin([1, 2, 3], size=(40, 30), tooltip='Spinner', key='_SPIN1_')],
-        [Spin(['Combo item 1', 'Combo item 2', 'Combo item 3'], size=(240, 30), tooltip='Spinner', key='_SPIN2_')],
+        [Spin(['Spin item 1', 'Spin item 2', 'Spin item 3'], size=(240, 30), tooltip='Spinner', key='_SPIN2_')],
     ]
 
     frame3 = [
@@ -9511,9 +9810,10 @@ def main():
         [Text('VERSION {}'.format(ver), size=(85,1), text_color='yellow', font='ANY 18')],
 
         # [Image(data_base64=logo, tooltip='Image', click_submits=True, key='_IMAGE_'),
-         [Frame('Input Text Group', frame1, title_color='yellow', tooltip='Text Group'), Stretch()],
-        [Frame('Multiple Choice Group', frame2, title_color='green'),
-         Frame('Binary Choice Group', frame3, title_color='purple'),
+         [Frame('Input Text Group', frame1, title_color='yellow', tooltip='Text Group', frame_color='yellow', pad=(0,0)), Stretch()],
+        [Frame('Multiple Choice Group', frame2, title_color=theme_text_color(), frame_color='yellow'),
+         # Column([[Frame('Binary Choice Group', frame3, frame_color='white', title_color='white')]], pad=(0,0)),
+         Frame('Binary Choice Group', frame3, frame_color='white', title_color='white'),
          Frame('Variable Choice Group', frame4, title_color='blue'), Stretch()],
         [Frame('Structured Data Group', frame5, title_color='yellow'), ],
         # [Frame('Graphing Group', frame6)],
@@ -9527,9 +9827,10 @@ def main():
 
     window = Window('Window Title', layout,
                        font=('Helvetica', 13),
-                       default_button_element_size=(100, 30),
-                       auto_size_buttons=False,
+                       # default_button_element_size=(100, 30),
+                       # auto_size_buttons=False,
                        default_element_size=(200, 22),
+                        # margins = (40,40),
                        # border_depth=1,
                        )
     # graph_elem.DrawCircle((200, 200), 50, 'blue')
