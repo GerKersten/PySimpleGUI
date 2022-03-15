@@ -41,8 +41,8 @@ knightB = os.path.join(CHESS_PATH, 'nknightb.png')
 knightW = os.path.join(CHESS_PATH, 'nknightw.png')
 rookB = os.path.join(CHESS_PATH, 'nrookb.png')
 rookW = os.path.join(CHESS_PATH, 'nrookw.png')
-queenB = os.path.join(CHESS_PATH, 'nqueenB.png')
-queenW = os.path.join(CHESS_PATH, 'nqueenW.png')
+queenB = os.path.join(CHESS_PATH, 'nqueenb.png')
+queenW = os.path.join(CHESS_PATH, 'nqueenw.png')
 kingB = os.path.join(CHESS_PATH, 'nkingb.png')
 kingW = os.path.join(CHESS_PATH, 'nkingw.png')
 
@@ -157,4 +157,6 @@ def PlayGame():
             redraw_board(window, board)
             i += 1
 
+# assure to start in this folder
+os.chdir(os.path.realpath(os.path.dirname(__file__)))
 PlayGame()
